@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"strings"
+	"syscall"
 	"unicode"
 
 	"github.com/Gujarats/logger"
@@ -13,6 +14,11 @@ import (
 const (
 	AccessKey = "aws_access_key_id"
 	SecretKey = "aws_secret_access_key"
+
+	// Environment Variable
+	AccessKeyEnv = "AWS_ACCESS_KEY_ID"
+	SecretKeyEnv = "AWS_SECRET_ACCESS_KEY"
+	AwsTokenEnv  = "AWS_SESSION_TOKEN"
 )
 
 func main() {
@@ -47,6 +53,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	// get the access key
 	accessKeyIndex := bytes.Index(data[profileIndex:], []byte(`=`))
 	enter := bytes.Index(data[profileIndex+accessKeyIndex:], []byte("\n"))
+
 	// +1 avoid `=` added
 	accesKey := data[profileIndex+accessKeyIndex+1 : profileIndex+accessKeyIndex+enter]
 	profileIndex = profileIndex + accessKeyIndex + enter
@@ -58,6 +65,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	if enter == -1 {
 		enter = len(data[profileIndex+secretKeyIndex:])
 	}
+
 	// +1 avoid `=` added
 	secretKey := data[profileIndex+secretKeyIndex+1 : profileIndex+secretKeyIndex+enter]
 	awsCredentials.SecretKey = removeSpace(string(secretKey))
@@ -72,6 +80,19 @@ func (a *AwsCredentials) exportCredentials() error {
 	if a == nil {
 		return errors.New("Please check if your profile is exist in Aws credentials")
 	}
+
+	err := os.Setenv(AccessKeyEnv, a.AccessKey)
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv(SecretKeyEnv, a.SecretKey)
+	if err != nil {
+		return err
+	}
+
+	syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
+
 	return nil
 }
 
