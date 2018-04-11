@@ -47,10 +47,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	// get the access key
 	accessKeyIndex := bytes.Index(data[profileIndex:], []byte(`=`))
 	enter := bytes.Index(data[profileIndex+accessKeyIndex:], []byte("\n"))
-	logger.Debug("accessKeyIndex :: ", accessKeyIndex)
-	logger.Debug("enter :: ", enter)
-
-	// avoid `=` added
+	// +1 avoid `=` added
 	accesKey := data[profileIndex+accessKeyIndex+1 : profileIndex+accessKeyIndex+enter]
 	profileIndex = profileIndex + accessKeyIndex + enter
 	awsCredentials.AccessKey = removeSpace(string(accesKey))
@@ -58,7 +55,8 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	// get the secret key
 	secretKeyIndex := bytes.Index(data[profileIndex:], []byte(`=`))
 	enter = bytes.Index(data[profileIndex+secretKeyIndex:], []byte("\n"))
-	secretKey := data[profileIndex+secretKeyIndex : profileIndex+secretKeyIndex+enter]
+	// +1 avoid `=` added
+	secretKey := data[profileIndex+secretKeyIndex+1 : profileIndex+secretKeyIndex+enter]
 	awsCredentials.SecretKey = removeSpace(string(secretKey))
 
 	logger.Debug("result :: ", awsCredentials)
