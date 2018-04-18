@@ -54,7 +54,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	accessKeyIndex := bytes.Index(data[profileIndex:], []byte(`=`))
 	enter := bytes.Index(data[profileIndex+accessKeyIndex:], []byte("\n"))
 
-	// +1 avoid `=` added
+	// +1 avoid `=` being added
 	accesKey := data[profileIndex+accessKeyIndex+1 : profileIndex+accessKeyIndex+enter]
 	profileIndex = profileIndex + accessKeyIndex + enter
 	awsCredentials.AccessKey = removeSpace(string(accesKey))
@@ -66,7 +66,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 		enter = len(data[profileIndex+secretKeyIndex:])
 	}
 
-	// +1 avoid `=` added
+	// +1 avoid `=` being added
 	secretKey := data[profileIndex+secretKeyIndex+1 : profileIndex+secretKeyIndex+enter]
 	awsCredentials.SecretKey = removeSpace(string(secretKey))
 
@@ -91,7 +91,10 @@ func (a *AwsCredentials) exportCredentials() error {
 		return err
 	}
 
-	syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
+	err = syscall.Exec(os.Getenv("SHELL"), []string{os.Getenv("SHELL")}, syscall.Environ())
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

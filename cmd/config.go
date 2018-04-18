@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"fmt"
@@ -22,7 +22,6 @@ const (
 func getConfig() *Config {
 	viper.AddConfigPath("$HOME/" + pathConfig)
 	viper.SetConfigName("config")
-	viper.SetDefault("profile", "default")
 
 	home, err := homedir.Dir()
 	if err != nil {
@@ -30,7 +29,11 @@ func getConfig() *Config {
 		os.Exit(1)
 	}
 
+	// default value config
 	viper.SetDefault("AwsConfigPath", path.Join(home, ".aws/credentials"))
+	viper.SetDefault("profile", "default")
+	viper.AutomaticEnv() // read in environment variables that match
+
 	err = viper.ReadInConfig() // Find and read the config file
 	if err != nil {            // Handle errors reading the config file
 		panic(fmt.Errorf("Fatal error config file must exist in ~/"+pathConfig+"./config.yaml: %s \n", err))
