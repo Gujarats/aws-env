@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"flag"
 	"os"
 	"strings"
 	"syscall"
@@ -21,15 +22,32 @@ const (
 	AwsTokenEnv  = "AWS_SESSION_TOKEN"
 )
 
+var profile string
+
+func init() {
+	flag.StringVar(&profile, "profile", "default", "specify your aws profile (called using default)")
+	flag.Parse()
+}
+
 func main() {
 	config := getConfig()
+
 	dataCredentials, err := OpenFile(config.AwsConfigPath)
 	if err != nil {
 		logger.Debug("Error :: ", err)
 		os.Exit(1)
 	}
 
-	awsCred := getCredentials(dataCredentials, config.Profile)
+	// define which profile to use from config or flag
+	var useProfile string
+	// override profile if using flag
+	if profile != "default" {
+		useProfile = profile
+	} else {
+		useProfile = config.Profile
+	}
+
+	awsCred := getCredentials(dataCredentials, useProfile)
 	err = awsCred.exportCredentials()
 	if err != nil {
 		logger.Debug("Error :: ", err)
