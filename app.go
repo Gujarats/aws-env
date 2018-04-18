@@ -63,10 +63,14 @@ type AwsCredentials struct {
 
 func getCredentials(data []byte, profile string) *AwsCredentials {
 	awsCredentials := &AwsCredentials{}
-	profileIndex := bytes.Index(data, []byte(profile))
+	profileIndex := bytes.Index(data, []byte("["+profile+"]"))
 	if profileIndex == -1 {
-		return nil
+		return awsCredentials
 	}
+
+	// check if found profile is valid profile
+	//firstP := bytes.Index(data[profileIndex-1], []byte("["))
+	//secondP := bytes.Index(data[profileIndex:], []byte("]"))
 
 	// get the access key
 	accessKeyIndex := bytes.Index(data[profileIndex:], []byte(`=`))
@@ -88,7 +92,7 @@ func getCredentials(data []byte, profile string) *AwsCredentials {
 	secretKey := data[profileIndex+secretKeyIndex+1 : profileIndex+secretKeyIndex+enter]
 	awsCredentials.SecretKey = removeSpace(string(secretKey))
 
-	logger.Debug("result :: ", awsCredentials)
+	logger.Debug("credential exported to environment variable :: ", *awsCredentials)
 
 	return awsCredentials
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"testing"
+
+	"github.com/Gujarats/logger"
 )
 
 func TestExportCredentials(t *testing.T) {
@@ -58,10 +60,24 @@ aws_secret_access_key = mFF8JknsquQnCQuyb1j6IRjycu3RoFpGJdZiKnnn`),
 				SecretKey: "mFF8JknsquQnCQuyb1j6IRjycu3RoFpGJdZiKnnn",
 			},
 		},
+
+		// find the undefined profile but exist in the substring
+		{
+			data: []byte(`[testing-user]
+aws_access_key_id = AKKKJJJY62LYY25PLLLL
+aws_secret_access_key = qqUTe7gMPjjIWNSaLMMM+7ZFlILmJKUJ142gZ+ll
+
+[s3-test-read-only]
+aws_access_key_id = AKKKJOFRRA6JEHAFTYYY
+aws_secret_access_key = mFF8JknsquQnCQuyb1j6IRjycu3RoFpGJdZiKnnn`),
+			profile:        "testing",
+			awsCredentials: AwsCredentials{},
+		},
 	}
 
-	for _, testObject := range testObjects {
+	for index, testObject := range testObjects {
 		result := getCredentials(testObject.data, testObject.profile)
+		logger.Debug("Test Index :: ", index)
 
 		if result.AccessKey != testObject.awsCredentials.AccessKey {
 			log.Fatalf("expected %+v, result = %+v\n", testObject.awsCredentials, result)
